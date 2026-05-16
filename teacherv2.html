@@ -678,8 +678,12 @@ window.deleteQuestion = async function(id) {
   await deleteDoc(doc(db,'quizzes',activeQuizId,'questions',id));
   activeQuestions = activeQuestions.filter(q => q.id !== id);
   activeQuestions.forEach((q,i) => q.order = i+1);
+  const batch = writeBatch(db);
+  activeQuestions.forEach(q => batch.update(doc(db,'quizzes',activeQuizId,'questions',q.id), { order: q.order }));
+  batch.set(doc(db,'quizzes',activeQuizId), { questionCount: activeQuestions.length }, { merge:true });
+  await batch.commit();
   const qi = myQuizzes.findIndex(q => q.id === activeQuizId);
-  if (qi >= 0) { myQuizzes[qi].questionCount = activeQuestions.length; await setDoc(doc(db,'quizzes',activeQuizId),{questionCount:activeQuestions.length},{merge:true}); }
+  if (qi >= 0) myQuizzes[qi].questionCount = activeQuestions.length;
   renderQuestions();
 };
 
@@ -812,7 +816,7 @@ window.launchQuiz = async function(quizId, quizName) {
   activeRoomCode = code; currentQIndex = -1;
   await setDoc(doc(db,'rooms',code,'quiz','state'), { status:'waiting', quizId, quizName, ownerUid:currentUser.uid, ownerEmail:currentUser.email, createdAt:serverTimestamp() });
   for (const q of activeQuestions) await setDoc(doc(db,'rooms',code,'questions',q.id), q);
-  const baseUrl = window.location.origin + window.location.pathname.replace('teacher.html','');
+  const baseUrl = window.location.origin + window.location.pathname.replace(/[^/]*$/, '');
   document.getElementById('live-quiz-name').textContent = quizName;
   document.getElementById('results-quiz-name').textContent = quizName;
   document.getElementById('live-room-code').textContent = code;
@@ -862,7 +866,7 @@ async function sendQuestion(index) {
   } else {
     optArea.innerHTML = `<div style="background:#ffffff08;border-radius:10px;padding:16px;color:var(--muted);">Open vraag — leerlingen typen hun antwoord</div>`;
   }
-  await setDoc(doc(db,'rooms',activeRoomCode,'quiz','state'), { status:'question', questionId:q.id, questionIndex:index, timeLimit:q.timeLimit, questionStartedAt:Timestamp.now(), currentQIndex:index });
+  await setDoc(doc(db,'rooms',activeRoomCode,'quiz','state'), { status:'question', questionId:q.id, questionIndex:index, timeLimit:q.timeLimit, questionStartedAt:Timestamp.now(), currentQIndex:index }, { merge:true });
   watchLiveAnswers(q.id, q);
   if (autoLeaderboardTimer) clearTimeout(autoLeaderboardTimer);
   autoLeaderboardTimer = setTimeout(() => showAnswerResults(q), q.timeLimit * 1000 + 500);

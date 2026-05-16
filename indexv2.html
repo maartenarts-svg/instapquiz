@@ -362,18 +362,15 @@ async function submitAnswer(value, question, btn, container) {
     elapsed: Math.round(elapsed * 10) / 10,
     timestamp: serverTimestamp()
   });
-  await setDoc(doc(db, 'rooms', roomCode, 'players', playerKey), { score: getCurrentScore() + points }, { merge: true });
+  localScore += points;
+  await setDoc(doc(db, 'rooms', roomCode, 'players', playerKey), { score: localScore }, { merge: true });
 
   disableAnswers();
   if (question.type !== 'open' && question.type !== 'short') highlightAnswer(value, question, container);
   showFeedback(isCorrect ? 'correct' : 'wrong', points, question.type === 'open', question);
 }
 
-// Track score locally to avoid an extra read
 let localScore = 0;
-function getCurrentScore() { return localScore; }
-// Patch submitAnswer to also update localScore
-const _origSubmit = submitAnswer;
 
 function checkAnswer(v, q) {
   if (q.type === 'open') return true;
