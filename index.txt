@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>InstapQuiz</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#0f0f1a; --card:#1a1a2e; --accent:#f0c040; --accent2:#e05a5a;
+    --green:#4ecb71; --text:#f0eeea; --muted:#888; --radius:16px;
+  }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px; }
+  .logo { font-family:'Syne',sans-serif; font-size:2rem; font-weight:800; color:var(--accent); letter-spacing:-1px; margin-bottom:8px; }
+  .subtitle { color:var(--muted); font-size:0.9rem; margin-bottom:32px; }
+  .card { background:var(--card); border-radius:var(--radius); padding:32px; width:100%; max-width:480px; border:1px solid #ffffff12; }
+  input[type="text"] { width:100%; background:#ffffff0a; border:2px solid #ffffff18; border-radius:10px; color:var(--text); font-family:'DM Sans',sans-serif; font-size:1.1rem; padding:14px 16px; outline:none; transition:border-color 0.2s; margin-bottom:12px; }
+  input[type="text"]:focus { border-color:var(--accent); }
+  input[type="text"]::placeholder { color:var(--muted); }
+  .code-input { font-family:'Syne',sans-serif !important; font-size:2rem !important; letter-spacing:8px; text-align:center; }
+  .btn { width:100%; background:var(--accent); color:#0f0f1a; border:none; border-radius:10px; font-family:'Syne',sans-serif; font-size:1.1rem; font-weight:700; padding:14px; cursor:pointer; transition:transform 0.1s,opacity 0.2s; }
+  .btn:hover { opacity:0.9; }
+  .btn:active { transform:scale(0.98); }
+  .btn:disabled { opacity:0.4; cursor:not-allowed; }
+  .error-msg { color:var(--accent2); font-size:0.85rem; margin-top:8px; display:none; }
+  .wait-icon { font-size:3rem; margin-bottom:16px; animation:pulse 1.5s infinite; }
+  @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.12)} }
+  .room-chip { display:inline-block; background:var(--accent)20; border:1px solid var(--accent)44; color:var(--accent); font-family:'Syne',sans-serif; font-weight:700; padding:4px 12px; border-radius:99px; font-size:0.9rem; margin-top:10px; }
+  .question-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; }
+  .q-number { font-family:'Syne',sans-serif; font-size:0.85rem; color:var(--muted); text-transform:uppercase; letter-spacing:1px; }
+  .timer-wrap { position:relative; width:48px; height:48px; }
+  .timer-wrap svg { transform:rotate(-90deg); }
+  .timer-wrap circle { fill:none; stroke-width:4; }
+  .timer-track { stroke:#ffffff15; }
+  .timer-fill { stroke:var(--accent); stroke-dasharray:126; stroke-dashoffset:0; transition:stroke-dashoffset 1s linear,stroke 0.3s; }
+  .timer-label { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-family:'Syne',sans-serif; font-size:0.95rem; font-weight:700; }
+  .question-text { font-family:'Syne',sans-serif; font-size:1.3rem; font-weight:700; line-height:1.4; margin-bottom:24px; }
+  .options { display:flex; flex-direction:column; gap:10px; }
+  .option-btn { background:#ffffff08; border:2px solid #ffffff15; border-radius:10px; color:var(--text); font-family:'DM Sans',sans-serif; font-size:1rem; padding:14px 16px; text-align:left; cursor:pointer; transition:all 0.15s; display:flex; align-items:center; gap:12px; }
+  .option-btn:hover:not(:disabled) { border-color:var(--accent); background:#ffffff12; }
+  .option-btn:disabled { cursor:default; }
+  .option-btn.correct { border-color:var(--green); background:var(--green)22; }
+  .option-btn.wrong { border-color:var(--accent2); background:var(--accent2)22; }
+  .opt-label { width:28px; height:28px; border-radius:6px; background:#ffffff10; display:flex; align-items:center; justify-content:center; font-family:'Syne',sans-serif; font-weight:700; font-size:0.85rem; flex-shrink:0; }
+  .open-answer { display:flex; flex-direction:column; gap:10px; }
+  .open-answer textarea { width:100%; background:#ffffff0a; border:2px solid #ffffff18; border-radius:10px; color:var(--text); font-family:'DM Sans',sans-serif; font-size:1rem; padding:14px 16px; outline:none; resize:none; transition:border-color 0.2s; }
+  .open-answer textarea:focus { border-color:var(--accent); }
+  .feedback-bar { margin-top:16px; border-radius:10px; padding:12px 16px; font-family:'Syne',sans-serif; font-weight:700; font-size:0.95rem; display:none; }
+  .feedback-bar.correct { background:var(--green)22; color:var(--green); display:block; }
+  .feedback-bar.wrong { background:var(--accent2)22; color:var(--accent2); display:block; }
+  .feedback-bar.open { background:var(--accent)22; color:var(--accent); display:block; }
+  .lb-row { display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:1px solid #ffffff10; }
+  .lb-rank { font-family:'Syne',sans-serif; font-weight:800; font-size:1.1rem; width:28px; color:var(--muted); }
+  .lb-rank.top { color:var(--accent); }
+  .lb-name { flex:1; font-size:1rem; }
+  .lb-name.me { color:var(--accent); font-weight:700; }
+  .lb-score { font-family:'Syne',sans-serif; font-weight:700; color:var(--accent); }
+  #screen-finished { text-align:center; }
+  .trophy { font-size:4rem; margin-bottom:16px; }
+  #screen-finished h2 { font-family:'Syne',sans-serif; font-size:1.6rem; margin-bottom:8px; }
+  .final-score { font-family:'Syne',sans-serif; font-size:2.5rem; font-weight:800; color:var(--accent); margin-bottom:8px; }
+  .hidden { display:none !important; }
+</style>
+</head>
+<body>
+<div class="logo">InstapQuiz ⚡</div>
+<div class="subtitle" id="page-subtitle">Geef je roomcode en naam in</div>
+
+<div class="card" id="screen-login">
+  <h2 style="font-family:'Syne',sans-serif;font-size:1.3rem;margin-bottom:6px;">Deelnemen</h2>
+  <p style="color:var(--muted);font-size:0.9rem;margin-bottom:24px;">Vraag de code aan je leerkracht.</p>
+  <input type="text" class="code-input" id="room-input" placeholder="0000" maxlength="4" autocomplete="off">
+  <input type="text" id="username-input" placeholder="Jouw naam..." maxlength="20" autocomplete="off">
+  <button class="btn" onclick="joinQuiz()">Deelnemen →</button>
+  <p class="error-msg" id="login-error"></p>
+</div>
+
+<div class="card hidden" id="screen-waiting">
+  <div style="text-align:center;padding:20px 0;">
+    <div class="wait-icon">⏳</div>
+    <h2 style="font-family:'Syne',sans-serif;font-size:1.4rem;margin-bottom:8px;">Wacht op de leerkracht...</h2>
+    <p id="wait-name" style="margin-top:8px;color:var(--muted);"></p>
+    <div class="room-chip" id="wait-room"></div>
+  </div>
+</div>
+
+<div class="card hidden" id="screen-question">
+  <div class="question-header">
+    <span class="q-number" id="q-number">Vraag 1</span>
+    <div class="timer-wrap">
+      <svg viewBox="0 0 44 44" width="48" height="48">
+        <circle class="timer-track" cx="22" cy="22" r="20"/>
+        <circle class="timer-fill" id="timer-circle" cx="22" cy="22" r="20"/>
+      </svg>
+      <div class="timer-label" id="timer-label">30</div>
+    </div>
+  </div>
+  <div class="question-text" id="question-text"></div>
+  <div id="answer-area"></div>
+  <div class="feedback-bar" id="feedback-bar"></div>
+</div>
+
+<div class="card hidden" id="screen-leaderboard">
+  <h2 style="font-family:'Syne',sans-serif;font-size:1.4rem;margin-bottom:20px;">🏆 Rangschikking</h2>
+  <div id="lb-top3" style="margin-bottom:20px;"></div>
+  <div id="lb-my-position" style="margin-top:16px;padding-top:16px;border-top:1px solid #ffffff15;"></div>
+  <p style="color:var(--muted);font-size:0.82rem;margin-top:16px;text-align:center;">Wacht op de leerkracht...</p>
+</div>
+
+<div class="card hidden" id="screen-abandoned" style="text-align:center;padding:40px 20px;">
+  <div style="font-size:3rem;margin-bottom:16px;">✅</div>
+  <h2 style="font-family:'Syne',sans-serif;font-size:1.4rem;margin-bottom:12px;">De quiz is klaar.</h2>
+  <p style="color:var(--muted);">Sluit dit scherm.</p>
+</div>
+
+<div class="card hidden" id="screen-finished">
+  <div class="trophy">🎉</div>
+  <h2>Quiz afgelopen!</h2>
+  <div id="final-top3" style="margin:20px 0;"></div>
+  <div id="final-my-position" style="padding-top:16px;border-top:1px solid #ffffff15;"></div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, setDoc, onSnapshot, getDoc, collection, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const db = getFirestore(initializeApp({
+  apiKey:"AIzaSyDTrYvYgHB57sF_CHV-VJyjFpTsbDfNJoA", authDomain:"instapquiz.firebaseapp.com",
+  projectId:"instapquiz", storageBucket:"instapquiz.firebasestorage.app",
+  messagingSenderId:"165422140837", appId:"1:165422140837:web:f8541e95c467e306e3ec4c"
+}));
+
+let username="", roomCode="", myScore=0, currentQuestionId=null, answered=false;
+let timerInterval=null, questionStartTime=null, currentTimeLimit=30, quizUnsub=null;
+
+document.getElementById('room-input').addEventListener('input', e => { e.target.value=e.target.value.replace(/\D/g,''); });
+
+window.joinQuiz = async function() {
+  const code=document.getElementById('room-input').value.trim();
+  const name=document.getElementById('username-input').value.trim();
+  if (code.length!==4) return showError("Geef een geldige 4-cijferige code in.");
+  if (!name||name.length<2) return showError("Naam moet minstens 2 tekens zijn.");
+  const roomSnap=await getDoc(doc(db,"rooms",code,"quiz","state"));
+  if (!roomSnap.exists()) return showError("Room niet gevonden. Controleer de code.");
+  if (roomSnap.data().status==='finished') return showError("Deze quiz is al afgelopen.");
+  const playerSnap=await getDoc(doc(db,"rooms",code,"players",name));
+  if (playerSnap.exists()) return showError("Deze naam is al in gebruik in deze room.");
+  username=name; roomCode=code;
+  await setDoc(doc(db,"rooms",code,"players",name),{score:0,joinedAt:serverTimestamp()});
+  document.getElementById('wait-name').textContent=`Ingelogd als: ${name}`;
+  document.getElementById('wait-room').textContent=`Room ${code}`;
+  document.getElementById('page-subtitle').textContent=`Room ${code}`;
+  showScreen('waiting');
+  startListening();
+};
+
+function showError(msg){const el=document.getElementById('login-error');el.textContent=msg;el.style.display='block';}
+function showScreen(name){
+  ['login','waiting','question','leaderboard','finished','abandoned'].forEach(s=>document.getElementById(`screen-${s}`).classList.add('hidden'));
+  document.getElementById(`screen-${name}`).classList.remove('hidden');
+}
+
+function startListening(){
+  if(quizUnsub)quizUnsub();
+  quizUnsub=onSnapshot(doc(db,"rooms",roomCode,"quiz","state"),async snap=>{
+    if(!snap.exists())return;
+    const s=snap.data();
+    if(s.status==="waiting")showScreen('waiting');
+    else if(s.status==="question"&&s.questionId!==currentQuestionId){currentQuestionId=s.questionId;answered=false;await loadQuestion(s.questionId,s.timeLimit||30,s.questionStartedAt);}
+    else if(s.status==="leaderboard"){clearInterval(timerInterval);await showLeaderboard();}
+    else if(s.status==="finished"){clearInterval(timerInterval);await showFinished();}
+    else if(s.status==="abandoned"){clearInterval(timerInterval);showAbandoned();}
+  });
+}
+
+async function loadQuestion(qId,timeLimit,startedAt){
+  const qSnap=await getDoc(doc(db,"rooms",roomCode,"questions",qId));
+  if(!qSnap.exists())return;
+  const q=qSnap.data();
+  currentTimeLimit=timeLimit;
+  showScreen('question');
+  document.getElementById('q-number').textContent=`Vraag ${q.order||''}`;
+  document.getElementById('question-text').textContent=q.question;
+  document.getElementById('feedback-bar').className='feedback-bar';
+  const area=document.getElementById('answer-area');
+  area.innerHTML='';
+  if(q.type==='multiple'){
+    const opts=document.createElement('div');opts.className='options';
+    q.options.forEach((opt,i)=>{
+      const btn=document.createElement('button');btn.className='option-btn';
+      btn.innerHTML=`<span class="opt-label">${['A','B','C','D'][i]}</span>${opt}`;
+      btn.onclick=()=>submitAnswer(opt,q,btn,opts);opts.appendChild(btn);
+    });area.appendChild(opts);
+  }else if(q.type==='truefalse'){
+    const opts=document.createElement('div');opts.className='options';
+    ['Juist','Fout'].forEach(val=>{
+      const btn=document.createElement('button');btn.className='option-btn';
+      btn.innerHTML=`<span class="opt-label">${val==='Juist'?'✓':'✗'}</span>${val}`;
+      btn.onclick=()=>submitAnswer(val,q,btn,opts);opts.appendChild(btn);
+    });area.appendChild(opts);
+  }else if(q.type==='short'){
+    const wrap=document.createElement('div');wrap.className='open-answer';
+    const inp=document.createElement('input');inp.type='text';inp.placeholder='Jouw antwoord...';inp.autocomplete='off';
+    inp.style.cssText='width:100%;background:#ffffff0a;border:2px solid #ffffff18;border-radius:10px;color:var(--text);font-family:DM Sans,sans-serif;font-size:1.1rem;padding:14px 16px;outline:none;margin-bottom:12px;';
+    inp.addEventListener('keydown',e=>{if(e.key==='Enter')sbtn.click();});
+    const sbtn=document.createElement('button');sbtn.className='btn';sbtn.textContent='Indienen →';
+    sbtn.onclick=()=>submitAnswer(inp.value.trim(),q,sbtn,wrap);
+    wrap.appendChild(inp);wrap.appendChild(sbtn);area.appendChild(wrap);
+  }else{
+    const wrap=document.createElement('div');wrap.className='open-answer';
+    const ta=document.createElement('textarea');ta.placeholder='Jouw antwoord...';ta.rows=3;
+    const sbtn=document.createElement('button');sbtn.className='btn';sbtn.textContent='Indienen →';
+    sbtn.onclick=()=>submitAnswer(ta.value.trim(),q,sbtn,wrap);
+    wrap.appendChild(ta);wrap.appendChild(sbtn);area.appendChild(wrap);
+  }
+  clearInterval(timerInterval);
+  const elapsed=startedAt?(Date.now()-startedAt.toMillis())/1000:0;
+  let remaining=Math.max(0,timeLimit-elapsed);
+  questionStartTime=Date.now()-elapsed*1000;
+  updateTimer(remaining,timeLimit);
+  timerInterval=setInterval(()=>{
+    remaining-=1;
+    if(remaining<=0){clearInterval(timerInterval);if(!answered){disableAnswers();showFeedback('time');}remaining=0;}
+    updateTimer(remaining,timeLimit);
+  },1000);
+}
+
+function updateTimer(r,total){
+  document.getElementById('timer-circle').style.strokeDashoffset=126*(1-r/total);
+  document.getElementById('timer-circle').style.stroke=r>10?'var(--accent)':'var(--accent2)';
+  document.getElementById('timer-label').textContent=Math.ceil(r);
+}
+
+async function submitAnswer(value,question,btn,container){
+  if(answered||!value)return;
+  answered=true;clearInterval(timerInterval);
+  const elapsed=(Date.now()-questionStartTime)/1000;
+  const isCorrect=checkAnswer(value,question);
+  const points=isCorrect?Math.round(100+Math.max(0,currentTimeLimit-elapsed)*10):0;
+  myScore+=points;
+  await setDoc(doc(db,"rooms",roomCode,"answers",`${currentQuestionId}_${username}`),{username,questionId:currentQuestionId,answer:value,correct:isCorrect,points,elapsed:Math.round(elapsed*10)/10,timestamp:serverTimestamp()});
+  await setDoc(doc(db,"rooms",roomCode,"players",username),{score:myScore},{merge:true});
+  disableAnswers();
+  if(question.type!=='open'&&question.type!=='short')highlightAnswer(value,question,container);
+  showFeedback(isCorrect?'correct':'wrong',points,question.type==='open',question);
+}
+
+function checkAnswer(v,q){if(q.type==='open')return true;return v.toLowerCase().trim()===q.answer.toLowerCase().trim();}
+function disableAnswers(){document.querySelectorAll('.option-btn,.open-answer .btn,.open-answer textarea').forEach(el=>el.disabled=true);}
+function highlightAnswer(value,question,container){
+  container.querySelectorAll('.option-btn').forEach(btn=>{
+    const text=btn.textContent.trim().slice(1).trim();
+    if(text===value)btn.classList.add(checkAnswer(value,question)?'correct':'wrong');
+    if(text===question.answer&&!checkAnswer(value,question))btn.classList.add('correct');
+  });
+}
+function showFeedback(type,points,isOpen,q){
+  const bar=document.getElementById('feedback-bar');
+  if(isOpen&&q&&q.type==='open'){bar.className='feedback-bar open';bar.textContent='✓ Antwoord ingediend!';return;}
+  if(type==='correct'){bar.className='feedback-bar correct';bar.textContent=`✓ Juist! +${points} punten`;}
+  else if(type==='wrong'){bar.className='feedback-bar wrong';bar.textContent='✗ Fout. +0 punten';}
+  else{bar.className='feedback-bar wrong';bar.textContent='⏰ Tijd voorbij!';}
+}
+
+async function showLeaderboard(){
+  showScreen('leaderboard');
+  const snap=await getDocs(collection(db,"rooms",roomCode,"players"));
+  const players=[];snap.forEach(d=>players.push({name:d.id,...d.data()}));
+  players.sort((a,b)=>b.score-a.score);
+  const medals=['🥇','🥈','🥉'];
+  const top3=players.slice(0,3);
+  // Top 3
+  document.getElementById('lb-top3').innerHTML=top3.map((p,i)=>`
+    <div class="lb-row">
+      <span class="lb-rank top">${medals[i]}</span>
+      <span class="lb-name ${p.name===username?'me':''}">${p.name}${p.name===username?' (jij)':''}</span>
+      <span class="lb-score">${p.score} pt</span>
+    </div>`).join('');
+  // Own position
+  const myRank=players.findIndex(p=>p.name===username)+1;
+  const myScore=players.find(p=>p.name===username)?.score||0;
+  if(myRank>3){
+    document.getElementById('lb-my-position').innerHTML=`
+      <div style="text-align:center;padding:10px 0;">
+        <div style="color:var(--muted);font-size:0.82rem;margin-bottom:4px;">Jouw positie</div>
+        <div style="font-family:Syne,sans-serif;font-size:2rem;font-weight:800;color:var(--accent);">#${myRank}</div>
+        <div style="color:var(--muted);font-size:0.85rem;">${myScore} pt</div>
+      </div>`;
+  } else {
+    document.getElementById('lb-my-position').innerHTML='';
+  }
+}
+
+async function showFinished(){
+  showScreen('finished');
+  const snap=await getDocs(collection(db,"rooms",roomCode,"players"));
+  const players=[];snap.forEach(d=>players.push({name:d.id,...d.data()}));
+  players.sort((a,b)=>b.score-a.score);
+  const medals=['🥇','🥈','🥉'];
+  const top3=players.slice(0,3);
+  const myRank=players.findIndex(p=>p.name===username)+1;
+  const myScoreFinal=players.find(p=>p.name===username)?.score||0;
+  // Top 3
+  document.getElementById('final-top3').innerHTML=
+    '<div style="font-family:Syne,sans-serif;font-size:0.82rem;color:var(--muted);text-align:center;margin-bottom:12px;text-transform:uppercase;letter-spacing:1px;">Top 3</div>'+
+    top3.map((p,i)=>`
+      <div class="lb-row">
+        <span class="lb-rank top">${medals[i]}</span>
+        <span class="lb-name ${p.name===username?'me':''}">${p.name}${p.name===username?' (jij)':''}</span>
+        <span class="lb-score">${p.score} pt</span>
+      </div>`).join('');
+  // Own position
+  const posHtml = myRank <= 3
+    ? '<p style="color:var(--green);font-family:Syne,sans-serif;font-weight:700;text-align:center;margin-top:8px;">🎉 Jij staat in de top 3!</p>'
+    : `<div style="text-align:center;padding:10px 0;">
+        <div style="color:var(--muted);font-size:0.82rem;margin-bottom:4px;">Jouw eindpositie</div>
+        <div style="font-family:Syne,sans-serif;font-size:2rem;font-weight:800;color:var(--accent);">#${myRank}</div>
+        <div style="color:var(--muted);font-size:0.85rem;">${myScoreFinal} pt · van ${players.length} spelers</div>
+      </div>`;
+  document.getElementById('final-my-position').innerHTML=posHtml;
+}
+function showAbandoned(){
+  showScreen('abandoned');
+}
+</script>
+</body>
+</html>

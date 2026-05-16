@@ -1,0 +1,1213 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LesBegin – Leerkracht</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#0f0f1a; --card:#1a1a2e; --panel:#13131f; --accent:#f0c040; --accent2:#e05a5a;
+    --green:#4ecb71; --blue:#5a9ce0; --text:#f0eeea; --muted:#888; --radius:14px;
+  }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+
+  /* LOGIN */
+  #screen-login { min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:20px; }
+  .login-card { background:var(--card); border-radius:20px; padding:40px; width:100%; max-width:420px; border:1px solid #ffffff12; text-align:center; }
+  .login-logo { font-family:'Syne',sans-serif; font-size:2.2rem; font-weight:800; color:var(--accent); margin-bottom:6px; }
+  .login-sub { color:var(--muted); font-size:0.9rem; margin-bottom:32px; }
+  .google-btn { display:flex; align-items:center; justify-content:center; gap:12px; background:#fff; color:#1a1a1a; border:none; border-radius:10px; font-family:'DM Sans',sans-serif; font-size:1rem; font-weight:500; padding:14px 24px; width:100%; cursor:pointer; transition:opacity 0.2s; }
+  .google-btn:hover { opacity:0.92; }
+  .google-btn svg { width:20px; height:20px; flex-shrink:0; }
+  .login-note { color:var(--muted); font-size:0.8rem; margin-top:16px; }
+  #login-error { color:var(--accent2); font-size:0.85rem; margin-top:12px; display:none; }
+
+  /* APP */
+  #screen-app { display:none; }
+  .app { display:grid; grid-template-columns:260px 1fr; min-height:100vh; }
+  .sidebar { background:var(--panel); border-right:1px solid #ffffff0f; padding:20px 14px; display:flex; flex-direction:column; gap:6px; position:sticky; top:0; height:100vh; overflow-y:auto; }
+  .main { padding:32px; overflow-y:auto; }
+  .logo { font-family:'Syne',sans-serif; font-size:1.3rem; font-weight:800; color:var(--accent); padding:0 8px 14px; border-bottom:1px solid #ffffff0f; margin-bottom:6px; }
+  .nav-btn { background:none; border:none; color:var(--muted); font-family:'DM Sans',sans-serif; font-size:0.9rem; padding:9px 10px; border-radius:8px; cursor:pointer; text-align:left; width:100%; transition:all 0.15s; display:flex; align-items:center; gap:9px; }
+  .nav-btn:hover { background:#ffffff0a; color:var(--text); }
+  .nav-btn.active { background:var(--accent)18; color:var(--accent); }
+  .nav-section { font-size:0.72rem; color:var(--muted); text-transform:uppercase; letter-spacing:1px; padding:10px 10px 4px; margin-top:4px; }
+  .user-chip { margin-top:auto; background:var(--card); border-radius:10px; padding:10px 12px; font-size:0.82rem; display:flex; align-items:center; gap:8px; }
+  .user-avatar { width:28px; height:28px; border-radius:50%; background:var(--accent)30; display:flex; align-items:center; justify-content:center; font-family:'Syne',sans-serif; font-weight:700; font-size:0.8rem; color:var(--accent); flex-shrink:0; overflow:hidden; }
+  .user-avatar img { width:100%; height:100%; object-fit:cover; border-radius:50%; }
+  .user-info { flex:1; overflow:hidden; }
+  .user-name { font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .user-email { color:var(--muted); font-size:0.75rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .logout-btn { background:none; border:none; color:var(--muted); cursor:pointer; font-size:0.8rem; padding:2px; }
+  .logout-btn:hover { color:var(--accent2); }
+
+  /* TABS */
+  .tab { display:none; }
+  .tab.active { display:block; }
+  h1 { font-family:'Syne',sans-serif; font-size:1.7rem; font-weight:800; margin-bottom:6px; }
+  h2 { font-family:'Syne',sans-serif; font-size:1.2rem; margin-bottom:14px; }
+  .page-desc { color:var(--muted); font-size:0.9rem; margin-bottom:24px; }
+  .card { background:var(--card); border-radius:var(--radius); padding:22px; border:1px solid #ffffff0f; margin-bottom:16px; }
+
+  /* BUTTONS */
+  .btn { background:var(--accent); color:#0f0f1a; border:none; border-radius:8px; font-family:'Syne',sans-serif; font-size:0.9rem; font-weight:700; padding:9px 18px; cursor:pointer; transition:opacity 0.15s,transform 0.1s; white-space:nowrap; }
+  .btn:hover { opacity:0.9; }
+  .btn:active { transform:scale(0.97); }
+  .btn:disabled { opacity:0.35; cursor:not-allowed; }
+  .btn.danger { background:var(--accent2); color:#fff; }
+  .btn.ghost { background:#ffffff12; color:var(--text); }
+  .btn.green { background:var(--green); color:#0f0f1a; }
+  .btn.blue { background:var(--blue); color:#fff; }
+  .btn.small { padding:6px 12px; font-size:0.82rem; }
+
+  /* FORMS */
+  label { display:block; font-size:0.82rem; color:var(--muted); margin-bottom:5px; margin-top:12px; }
+  input[type="text"],input[type="number"],select,textarea { width:100%; background:#ffffff0a; border:2px solid #ffffff12; border-radius:8px; color:var(--text); font-family:'DM Sans',sans-serif; font-size:0.92rem; padding:9px 11px; outline:none; transition:border-color 0.2s; }
+  input:focus,select:focus,textarea:focus { border-color:var(--accent); }
+  select option { background:#1a1a2e; }
+  textarea { resize:vertical; }
+
+  /* QUIZ LIST */
+  .quiz-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:14px; margin-bottom:20px; }
+  .quiz-card { background:var(--card); border:2px solid #ffffff10; border-radius:12px; padding:18px; cursor:pointer; transition:all 0.2s; position:relative; display:flex; flex-direction:column; }
+  .quiz-card:hover { border-color:var(--accent)44; background:#1f1f35; }
+  .quiz-card-title { font-family:'Syne',sans-serif; font-weight:700; font-size:1rem; margin-bottom:6px; word-break:break-word; }
+  .quiz-card-meta { font-size:0.8rem; color:var(--muted); margin-bottom:auto; }
+  .quiz-card-actions { display:grid; grid-template-columns:1fr 1fr auto; gap:6px; margin-top:14px; }
+  .quiz-card-actions .btn { width:100%; font-size:0.82rem; padding:8px 6px; }
+
+  /* QUESTION LIST */
+  .q-item { background:#ffffff06; border:1px solid #ffffff10; border-radius:10px; padding:12px 14px; margin-bottom:8px; display:flex; align-items:center; gap:10px; }
+  .q-num { font-family:'Syne',sans-serif; font-weight:800; color:var(--accent); width:22px; flex-shrink:0; font-size:0.9rem; }
+  .q-info { flex:1; min-width:0; }
+  .q-text { font-size:0.9rem; margin-bottom:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .q-meta { font-size:0.75rem; color:var(--muted); }
+  .type-badge { font-size:0.72rem; font-family:'Syne',sans-serif; padding:2px 7px; border-radius:99px; background:#ffffff12; }
+  .type-badge.multiple { color:var(--blue); border:1px solid var(--blue)44; }
+  .type-badge.truefalse { color:var(--green); border:1px solid var(--green)44; }
+  .type-badge.open { color:var(--accent); border:1px solid var(--accent)44; }
+  .type-badge.short { color:#c084fc; border:1px solid #c084fc44; }
+  .options-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:6px; }
+  .opt-input-row { display:flex; align-items:center; gap:7px; }
+  .opt-label-badge { font-family:'Syne',sans-serif; font-weight:700; font-size:0.82rem; color:var(--accent); width:18px; flex-shrink:0; }
+
+  /* ROOM / LIVE */
+  .room-display { background:linear-gradient(135deg,var(--accent)18,var(--accent)06); border:2px solid var(--accent)44; border-radius:16px; padding:20px 28px; text-align:center; margin-bottom:18px; }
+  .room-code-big { font-family:'Syne',sans-serif; font-size:3.5rem; font-weight:800; color:var(--accent); letter-spacing:10px; line-height:1; }
+  .room-url { font-size:0.82rem; color:var(--muted); margin-top:6px; background:#ffffff08; border-radius:6px; padding:5px 10px; display:inline-block; }
+  .stat-card { background:#ffffff06; border-radius:10px; padding:14px 18px; border:1px solid #ffffff10; }
+  .stat-val { font-family:'Syne',sans-serif; font-size:1.8rem; font-weight:800; color:var(--accent); }
+  .stat-label { font-size:0.78rem; color:var(--muted); margin-top:2px; }
+
+  /* LIVE */
+  .live-view { max-width:640px; margin:0 auto; }
+  .live-question-text { font-family:'Syne',sans-serif; font-size:1.2rem; font-weight:700; line-height:1.5; margin-bottom:24px; color:var(--text); }
+  .live-option { display:flex; align-items:center; gap:12px; background:#ffffff08; border:2px solid #ffffff15; border-radius:10px; padding:14px 16px; margin-bottom:10px; }
+  .live-option.correct { border-color:var(--green); background:var(--green)18; }
+  .live-opt-label { width:32px; height:32px; border-radius:7px; background:#ffffff12; display:flex; align-items:center; justify-content:center; font-family:'Syne',sans-serif; font-weight:700; font-size:0.9rem; flex-shrink:0; }
+  .live-option.correct .live-opt-label { background:var(--green); color:#0f0f1a; }
+  .live-opt-text { flex:1; font-size:1rem; }
+  .answer-bar-wrap { display:flex; flex-direction:column; gap:10px; margin-top:8px; }
+  .answer-bar-row { display:grid; grid-template-columns:32px 1fr 48px; align-items:center; gap:10px; }
+  .answer-bar-label { font-family:'Syne',sans-serif; font-weight:700; font-size:0.88rem; text-align:center; }
+  .answer-bar-track { height:36px; background:#ffffff0a; border-radius:8px; overflow:hidden; border:2px solid #ffffff10; position:relative; }
+  .answer-bar-fill { height:100%; border-radius:6px; background:#ffffff20; transition:width 0.5s ease; display:flex; align-items:center; padding-left:10px; font-size:0.82rem; font-weight:500; min-width:0; }
+  .answer-bar-fill.correct { background:var(--green)55; }
+  .answer-bar-count { font-family:'Syne',sans-serif; font-weight:700; font-size:0.88rem; color:var(--muted); text-align:right; }
+  .top3-row { display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:1px solid #ffffff10; }
+  .top3-medal { font-size:1.6rem; }
+  .top3-name { flex:1; font-family:'Syne',sans-serif; font-weight:700; font-size:1rem; }
+  .top3-score { font-family:'Syne',sans-serif; font-weight:700; color:var(--accent); font-size:1rem; }
+  .phase-chip { display:inline-flex; align-items:center; gap:6px; background:var(--accent)18; border:1px solid var(--accent)44; color:var(--accent); font-family:'Syne',sans-serif; font-weight:700; font-size:0.78rem; padding:4px 10px; border-radius:99px; margin-bottom:16px; }
+
+  /* RESULTS */
+  .lb-table { width:100%; border-collapse:collapse; }
+  .lb-table th { font-family:'Syne',sans-serif; font-size:0.78rem; color:var(--muted); text-align:left; padding:7px 10px; border-bottom:1px solid #ffffff10; }
+  .lb-table td { padding:9px 10px; border-bottom:1px solid #ffffff08; font-size:0.9rem; }
+  .lb-table tr:hover td { background:#ffffff05; }
+  .answer-row { display:flex; align-items:center; gap:10px; padding:8px 12px; border-radius:8px; background:#ffffff05; margin-bottom:5px; font-size:0.88rem; }
+  .answer-correct { color:var(--green); }
+  .answer-wrong { color:var(--accent2); }
+
+  /* STUDENTS */
+  .student-row { display:flex; align-items:center; gap:12px; padding:9px 12px; background:#ffffff05; border-radius:8px; margin-bottom:6px; font-size:0.88rem; }
+  .student-name { flex:1; font-weight:500; }
+  .student-email { color:var(--muted); font-size:0.8rem; }
+
+  /* ROOMS */
+  .room-item { background:var(--card); border:1px solid #ffffff0f; border-radius:12px; padding:16px 20px; margin-bottom:10px; display:flex; align-items:center; gap:16px; }
+  .room-code-badge { font-family:'Syne',sans-serif; font-weight:800; font-size:1.5rem; color:var(--accent); letter-spacing:4px; min-width:70px; }
+  .room-meta { flex:1; }
+  .room-meta-title { font-family:'Syne',sans-serif; font-weight:700; font-size:0.95rem; margin-bottom:4px; }
+  .room-meta-sub { font-size:0.8rem; color:var(--muted); }
+  .empty-state { text-align:center; padding:40px 20px; color:var(--muted); }
+  .empty-icon { font-size:2.5rem; margin-bottom:12px; }
+
+  /* CSV upload */
+  .upload-zone { border:2px dashed #ffffff20; border-radius:12px; padding:28px; text-align:center; cursor:pointer; transition:border-color 0.2s,background 0.2s; }
+  .upload-zone:hover { border-color:var(--accent)66; background:var(--accent)06; }
+  .upload-zone.drag { border-color:var(--accent); background:var(--accent)10; }
+  .upload-zone input { display:none; }
+
+  /* MODAL */
+  .modal-overlay { position:fixed; inset:0; background:#00000088; display:flex; align-items:center; justify-content:center; z-index:100; padding:20px; }
+  .modal-overlay.hidden { display:none; }
+  .modal { background:var(--card); border-radius:16px; padding:28px; width:100%; max-width:520px; border:1px solid #ffffff18; max-height:90vh; overflow-y:auto; }
+  .modal h2 { font-family:'Syne',sans-serif; font-size:1.2rem; margin-bottom:20px; }
+  .modal-footer { display:flex; gap:10px; margin-top:20px; }
+  .modal-footer .btn { flex:1; }
+
+  @media(max-width:700px) {
+    .app { grid-template-columns:1fr; }
+    .sidebar { position:static; height:auto; flex-direction:row; flex-wrap:wrap; padding:10px; }
+    .nav-section,.user-chip { display:none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="screen-login">
+  <div class="login-card">
+    <div class="login-logo">⚡ LesBegin</div>
+    <div class="login-sub">Portaal voor leerkrachten</div>
+    <button class="google-btn" onclick="loginWithGoogle()">
+      <svg viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+      Inloggen met Google
+    </button>
+    <p class="login-note">Enkel voor geregistreerde leerkrachten.</p>
+    <p id="login-error"></p>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="screen-app">
+<div class="app">
+
+<div class="sidebar">
+  <div class="logo">⚡ LesBegin</div>
+  <div class="nav-section">Quizzen</div>
+  <button class="nav-btn active" onclick="showTab('tab-quizzes',this)"><span>📚</span> Mijn quizzen</button>
+  <button class="nav-btn" id="nav-questions" onclick="showTab('tab-questions',this)" style="display:none"><span>📝</span> Vragen bewerken</button>
+  <div class="nav-section">Sessie</div>
+  <button class="nav-btn" id="nav-live" onclick="showTab('tab-live',this)" style="display:none"><span>🎮</span> Live quiz</button>
+  <button class="nav-btn" id="nav-results" onclick="showTab('tab-results',this)" style="display:none"><span>🏆</span> Resultaten</button>
+  <div class="nav-section">Beheer</div>
+  <button class="nav-btn" onclick="showTab('tab-students',this);loadStudents()"><span>👥</span> Leerlingen</button>
+  <button class="nav-btn" onclick="showTab('tab-rooms',this);loadRooms()"><span>🗂️</span> Mijn rooms</button>
+  <div class="user-chip">
+    <div class="user-avatar" id="user-avatar">?</div>
+    <div class="user-info">
+      <div class="user-name" id="user-name">–</div>
+      <div class="user-email" id="user-email">–</div>
+    </div>
+    <button class="logout-btn" onclick="logout()" title="Uitloggen">✕</button>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- TAB: QUIZZEN -->
+  <div class="tab active" id="tab-quizzes">
+    <h1>📚 Mijn quizzen</h1>
+    <p class="page-desc">Maak quizzen aan en start ze in de klas.</p>
+    <div class="card">
+      <h2>Nieuwe quiz aanmaken</h2>
+      <label>Naam van de quiz</label>
+      <input type="text" id="new-quiz-name" placeholder="Bijv. Hoofdstuk 3 – Vergelijkingen">
+      <div style="margin-top:12px;"><button class="btn" onclick="createQuiz()">+ Aanmaken</button></div>
+    </div>
+    <h2>Overzicht <span id="quiz-count" style="color:var(--muted);font-size:0.85rem;font-weight:400"></span></h2>
+    <div class="quiz-grid" id="quiz-grid">
+      <div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">📭</div><p>Nog geen quizzen.</p></div>
+    </div>
+  </div>
+
+  <!-- TAB: VRAGEN -->
+  <div class="tab" id="tab-questions">
+    <h1>📝 Vragen bewerken</h1>
+    <p class="page-desc">Quiz: <strong id="editing-quiz-name" style="color:var(--accent)">–</strong></p>
+    <div class="card">
+      <h2>Nieuwe vraag toevoegen</h2>
+      <label>Vraagtype</label>
+      <select id="q-type" onchange="onTypeChange()">
+        <option value="multiple">Meerkeuze (A/B/C/D)</option>
+        <option value="truefalse">Juist / Fout</option>
+        <option value="short">Kort antwoord (automatisch nagekeken)</option>
+        <option value="open">Open vraag (manueel nagekeken)</option>
+      </select>
+      <label>Vraag</label>
+      <textarea id="q-text" rows="2" placeholder="Bijv. Bereken 3x + 5 = 20, wat is x?"></textarea>
+      <div id="options-area"></div>
+      <label>Tijdslimiet (seconden)</label>
+      <input type="number" id="q-time" value="30" min="10" max="120">
+      <div style="margin-top:14px;"><button class="btn" onclick="addQuestion()">+ Vraag toevoegen</button></div>
+    </div>
+    <h2>Vragenlijst <span id="q-count" style="color:var(--muted);font-size:0.85rem;font-weight:400"></span></h2>
+    <div id="q-list"></div>
+    <div style="margin-top:20px;display:flex;gap:10px;flex-wrap:wrap;">
+      <button class="btn green" onclick="startQuizFromEditor()">▶ Start deze quiz nu</button>
+      <button class="btn ghost" onclick="showTab('tab-quizzes',document.querySelector('.nav-btn'))">← Terug</button>
+    </div>
+  </div>
+
+  <!-- TAB: LIVE -->
+  <div class="tab" id="tab-live">
+    <div id="live-phase-waiting">
+      <h1>🎮 Live quiz</h1>
+      <p class="page-desc">Quiz: <strong id="live-quiz-name" style="color:var(--accent)">–</strong></p>
+      <div class="room-display">
+        <div style="color:var(--muted);font-size:0.82rem;margin-bottom:4px;">Roomcode voor leerlingen</div>
+        <div class="room-code-big" id="live-room-code">–</div>
+        <div style="margin-top:10px;">
+          <div style="color:var(--muted);font-size:0.78rem;">Leerlingen gaan naar:</div>
+          <div class="room-url" id="live-room-url">–</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:20px;">
+        <button class="btn ghost small" onclick="copyRoomUrl()">📋 Kopieer link</button>
+        <span style="color:var(--muted);font-size:0.85rem;margin-left:8px;"><span id="ctrl-players">0</span> leerlingen online</span>
+      </div>
+      <button class="btn green" style="width:100%;padding:14px;font-size:1.1rem;" id="btn-start" onclick="startQuizSession()">▶ Start quiz</button>
+      <div id="player-list-wrap" style="margin-top:20px;">
+        <div style="font-family:Syne,sans-serif;font-size:0.78rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Ingelogde leerlingen</div>
+        <div id="player-list" style="display:flex;flex-wrap:wrap;gap:8px;"><span style="color:var(--muted);font-size:0.85rem;">Nog niemand ingelogd.</span></div>
+      </div>
+    </div>
+
+    <div id="live-phase-question" style="display:none">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;align-items:center;">
+        <div class="phase-chip" id="live-phase-chip">⏳ Leerlingen antwoorden...</div>
+        <span style="flex:1"></span>
+        <button class="btn" id="btn-next" onclick="nextQuestion()" disabled>Volgende vraag →</button>
+        <button class="btn danger" id="btn-end" onclick="endQuiz()" disabled>■ Beëindigen</button>
+        <button class="btn ghost small" onclick="leaveQuiz()">✕ Verlaat</button>
+      </div>
+      <div class="live-view card" id="live-question-card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+          <span style="font-family:Syne,sans-serif;font-size:0.82rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;" id="live-q-number">Vraag 1</span>
+          <span style="font-family:Syne,sans-serif;font-weight:700;color:var(--muted);font-size:0.82rem;" id="live-q-count-label"></span>
+        </div>
+        <div class="live-question-text" id="live-question-text">–</div>
+        <div id="live-options-area"></div>
+        <div id="live-bars-area" style="display:none"></div>
+        <div id="live-open-result" style="display:none"></div>
+      </div>
+      <div class="card live-view" id="live-top3-card" style="display:none">
+        <h2>🏆 Top 3</h2>
+        <div id="live-top3-list"></div>
+      </div>
+      <div style="text-align:center;color:var(--muted);font-size:0.85rem;margin-top:12px;" id="live-answer-counter"></div>
+    </div>
+  </div>
+
+  <!-- TAB: RESULTATEN -->
+  <div class="tab" id="tab-results">
+    <h1>🏆 Resultaten</h1>
+    <p class="page-desc">Quiz: <strong id="results-quiz-name" style="color:var(--accent)">–</strong> · Room <strong id="results-room-code" style="color:var(--accent)">–</strong></p>
+    <div class="card">
+      <h2>Eindrangschikking</h2>
+      <table class="lb-table">
+        <thead><tr><th>#</th><th>Naam</th><th>E-mail</th><th>Score</th></tr></thead>
+        <tbody id="results-lb"></tbody>
+      </table>
+    </div>
+    <div class="card">
+      <h2>Antwoorden per vraag</h2>
+      <select id="result-q-select" onchange="loadAnswersForQuestion(this.value)" style="margin-bottom:14px;"></select>
+      <div id="result-answers"></div>
+    </div>
+  </div>
+
+  <!-- TAB: LEERLINGEN -->
+  <div class="tab" id="tab-students">
+    <h1>👥 Leerlingen</h1>
+    <p class="page-desc">Upload een CSV-bestand met leerlingen om toegang te verlenen.</p>
+    <div class="card">
+      <h2>CSV uploaden</h2>
+      <p style="color:var(--muted);font-size:0.85rem;margin-bottom:16px;">
+        Verwacht formaat: <code style="background:#ffffff10;padding:2px 6px;border-radius:4px;">email,fullName</code><br>
+        Eerste rij mag een header zijn (wordt automatisch overgeslagen).<br>
+        Bestaande leerlingen worden bijgewerkt, nieuwe worden toegevoegd.
+      </p>
+      <div class="upload-zone" id="upload-zone" onclick="document.getElementById('csv-file').click()"
+           ondragover="event.preventDefault();this.classList.add('drag')"
+           ondragleave="this.classList.remove('drag')"
+           ondrop="handleDrop(event)">
+        <input type="file" id="csv-file" accept=".csv" onchange="handleCsvFile(this.files[0])">
+        <div style="font-size:2rem;margin-bottom:8px;">📄</div>
+        <div style="font-family:Syne,sans-serif;font-weight:700;">Klik of sleep een CSV-bestand hier</div>
+        <div style="color:var(--muted);font-size:0.82rem;margin-top:4px;">Maximaal 500 leerlingen</div>
+      </div>
+      <div id="csv-preview" style="margin-top:16px;display:none;">
+        <div style="font-family:Syne,sans-serif;font-size:0.88rem;color:var(--muted);margin-bottom:10px;" id="csv-preview-label"></div>
+        <div id="csv-preview-rows" style="max-height:200px;overflow-y:auto;margin-bottom:14px;"></div>
+        <button class="btn green" onclick="uploadStudents()">✓ Importeren</button>
+        <button class="btn ghost" style="margin-left:8px;" onclick="cancelCsv()">Annuleren</button>
+      </div>
+      <div id="csv-feedback" style="margin-top:12px;display:none;"></div>
+    </div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+        <h2 style="margin-bottom:0;">Leerlingenlijst <span id="student-count" style="color:var(--muted);font-size:0.85rem;font-weight:400"></span></h2>
+        <button class="btn danger small" onclick="clearAllStudents()">🗑 Alles verwijderen</button>
+      </div>
+      <div id="student-list"><div class="empty-state"><div class="empty-icon">📭</div><p>Nog geen leerlingen.</p></div></div>
+    </div>
+  </div>
+
+  <!-- TAB: ROOMS -->
+  <div class="tab" id="tab-rooms">
+    <h1>🗂️ Mijn rooms</h1>
+    <p class="page-desc">Overzicht van alle rooms die jij aangemaakt hebt.</p>
+    <div id="rooms-list"><div class="empty-state"><div class="empty-icon">📭</div><p>Rooms laden...</p></div></div>
+  </div>
+
+</div><!-- /main -->
+</div><!-- /app -->
+</div><!-- /screen-app -->
+
+<!-- BEWERK MODAL -->
+<div class="modal-overlay hidden" id="edit-modal">
+  <div class="modal">
+    <h2>✏️ Vraag bewerken</h2>
+    <input type="hidden" id="edit-q-id">
+    <label>Vraagtype</label>
+    <select id="edit-q-type" onchange="onEditTypeChange()">
+      <option value="multiple">Meerkeuze (A/B/C/D)</option>
+      <option value="truefalse">Juist / Fout</option>
+      <option value="short">Kort antwoord (automatisch nagekeken)</option>
+      <option value="open">Open vraag (manueel nagekeken)</option>
+    </select>
+    <label>Vraag</label>
+    <textarea id="edit-q-text" rows="2"></textarea>
+    <div id="edit-options-area"></div>
+    <label>Tijdslimiet (seconden)</label>
+    <input type="number" id="edit-q-time" min="10" max="120">
+    <div class="modal-footer">
+      <button class="btn green" onclick="saveEditQuestion()">✓ Opslaan</button>
+      <button class="btn ghost" onclick="closeEditModal()">Annuleren</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import {
+  getFirestore, doc, setDoc, getDoc, getDocs, deleteDoc,
+  collection, collectionGroup, onSnapshot, query, orderBy, serverTimestamp, Timestamp, writeBatch
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import {
+  getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+const app = initializeApp({
+  apiKey: "AIzaSyBp4w1PFN9DdpSUeI6P1Cw4PsVhOg8ZBbM",
+  authDomain: "lesbegin-318e0.firebaseapp.com",
+  projectId: "lesbegin-318e0",
+  storageBucket: "lesbegin-318e0.firebasestorage.app",
+  messagingSenderId: "319631649818",
+  appId: "1:319631649818:web:b8a46bba879c13a7d635a3"
+});
+const db = getFirestore(app);
+const auth = getAuth(app);
+const provider = new GoogleAuthProvider();
+
+let currentUser = null;
+let myQuizzes = [];
+let activeQuizId = null;
+let activeQuizName = '';
+let activeQuestions = [];
+let activeRoomCode = null;
+let currentQIndex = -1;
+let liveAnswerUnsub = null;
+let playersUnsub = null;
+let playerCount = 0;
+let autoLeaderboardTimer = null;
+let allAnswersForCurrentQ = [];
+
+// CSV state
+let pendingStudents = [];
+
+// ── AUTH ─────────────────────────────────────────────────────────────────────
+window.loginWithGoogle = async function() {
+  const errEl = document.getElementById('login-error');
+  errEl.style.display = 'none';
+  try {
+    const result = await signInWithPopup(auth, provider);
+    const teacherSnap = await getDoc(doc(db, 'teachers', result.user.email));
+    if (!teacherSnap.exists()) {
+      await signOut(auth);
+      showLoginError('Jouw account is niet geregistreerd als leerkracht.');
+      return;
+    }
+  } catch(e) {
+    showLoginError('Inloggen mislukt. Probeer opnieuw.');
+  }
+};
+
+function showLoginError(msg) {
+  const el = document.getElementById('login-error');
+  el.textContent = msg; el.style.display = 'block';
+}
+
+window.logout = async function() { await signOut(auth); };
+
+onAuthStateChanged(auth, async user => {
+  if (user) {
+    const teacherSnap = await getDoc(doc(db, 'teachers', user.email));
+    if (!teacherSnap.exists()) { await signOut(auth); return; }
+    currentUser = user;
+    document.getElementById('screen-login').style.display = 'none';
+    document.getElementById('screen-app').style.display = 'block';
+    const avatarEl = document.getElementById('user-avatar');
+    if (user.photoURL) {
+      avatarEl.innerHTML = `<img src="${user.photoURL}" alt="">`;
+    } else {
+      avatarEl.textContent = (user.displayName || user.email).slice(0,2).toUpperCase();
+    }
+    document.getElementById('user-name').textContent = user.displayName || '';
+    document.getElementById('user-email').textContent = user.email;
+    await loadQuizzes();
+  } else {
+    currentUser = null;
+    document.getElementById('screen-login').style.display = 'flex';
+    document.getElementById('screen-app').style.display = 'none';
+  }
+});
+
+// ── TABS ─────────────────────────────────────────────────────────────────────
+window.showTab = function(id, btn) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if (btn) btn.classList.add('active');
+  if (id === 'tab-results') refreshResults();
+};
+
+// ── QUIZZEN ───────────────────────────────────────────────────────────────────
+async function loadQuizzes() {
+  myQuizzes = [];
+  const snap = await getDocs(query(collection(db,'quizzes'), orderBy('createdAt','desc')));
+  snap.forEach(d => myQuizzes.push({ id:d.id, ...d.data() }));
+  renderQuizGrid();
+}
+
+window.createQuiz = async function() {
+  const name = document.getElementById('new-quiz-name').value.trim();
+  if (!name) return alert('Geef een naam in.');
+  const id = `quiz_${Date.now()}`;
+  await setDoc(doc(db,'quizzes',id), { name, ownerUid:currentUser.uid, ownerEmail:currentUser.email, createdAt:serverTimestamp(), questionCount:0 });
+  document.getElementById('new-quiz-name').value = '';
+  myQuizzes.unshift({ id, name, questionCount:0 });
+  renderQuizGrid();
+};
+
+function renderQuizGrid() {
+  const grid = document.getElementById('quiz-grid');
+  document.getElementById('quiz-count').textContent = `(${myQuizzes.length})`;
+  if (myQuizzes.length === 0) {
+    grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">📭</div><p>Nog geen quizzen.</p></div>';
+    return;
+  }
+  grid.innerHTML = myQuizzes.map(q => `
+    <div class="quiz-card">
+      <div class="quiz-card-title">${escHtml(q.name)}</div>
+      <div class="quiz-card-meta">${q.questionCount||0} vragen</div>
+      <div class="quiz-card-actions">
+        <button class="btn small" onclick="openQuizEditor('${q.id}','${escHtml(q.name)}')">✏️ Bewerken</button>
+        <button class="btn green small" onclick="launchQuiz('${q.id}','${escHtml(q.name)}')">▶ Starten</button>
+        <button class="btn danger small" onclick="deleteQuiz('${q.id}')">✕</button>
+      </div>
+    </div>`).join('');
+}
+
+function escHtml(s) { return s.replace(/'/g,"&#39;").replace(/"/g,"&quot;"); }
+
+window.deleteQuiz = async function(id) {
+  if (!confirm('Quiz en alle vragen verwijderen?')) return;
+  const qSnap = await getDocs(collection(db,'quizzes',id,'questions'));
+  for (const d of qSnap.docs) await deleteDoc(d.ref);
+  await deleteDoc(doc(db,'quizzes',id));
+  myQuizzes = myQuizzes.filter(q => q.id !== id);
+  renderQuizGrid();
+};
+
+// ── VRAAG EDITOR ─────────────────────────────────────────────────────────────
+window.openQuizEditor = async function(id, name) {
+  activeQuizId = id; activeQuizName = name;
+  document.getElementById('editing-quiz-name').textContent = name;
+  document.getElementById('nav-questions').style.display = 'flex';
+  await loadQuestionsForQuiz(id);
+  showTab('tab-questions', document.getElementById('nav-questions'));
+};
+
+async function loadQuestionsForQuiz(quizId) {
+  activeQuestions = [];
+  const snap = await getDocs(query(collection(db,'quizzes',quizId,'questions'), orderBy('order')));
+  snap.forEach(d => activeQuestions.push({ id:d.id, ...d.data() }));
+  renderQuestions();
+}
+
+window.onTypeChange = function() {
+  const type = document.getElementById('q-type').value;
+  const area = document.getElementById('options-area');
+  if (type === 'multiple') {
+    area.innerHTML = `<label>Antwoordopties</label><div class="options-grid">${['A','B','C','D'].map(l=>`<div class="opt-input-row"><span class="opt-label-badge">${l}</span><input type="text" id="opt-${l}" placeholder="Optie ${l}"></div>`).join('')}</div><label>Correct antwoord</label><select id="q-answer"><option value="">Kies correct antwoord...</option>${['A','B','C','D'].map(l=>`<option value="${l}">Optie ${l}</option>`).join('')}</select>`;
+  } else if (type === 'truefalse') {
+    area.innerHTML = `<label>Correct antwoord</label><select id="q-answer"><option value="Juist">Juist</option><option value="Fout">Fout</option></select>`;
+  } else if (type === 'short') {
+    area.innerHTML = `
+      <label>Correcte antwoorden</label>
+      <div id="short-answers-list">
+        <div class="short-answer-row" style="display:flex;gap:8px;margin-bottom:8px;">
+          <input type="text" class="short-ans-input" placeholder="Correct antwoord..." style="margin-bottom:0;">
+          <button type="button" class="btn danger small" style="width:auto;flex-shrink:0;" onclick="removeShortAnswer(this)">×</button>
+        </div>
+      </div>
+      <button type="button" class="btn ghost small" style="margin-top:4px;" onclick="addShortAnswer()">+ Voeg antwoord toe</button>
+      <label style="margin-top:16px;">Verbeteringswijze</label>
+      <div style="display:flex;gap:8px;margin-top:6px;" id="strictness-toggle">
+        <button type="button" id="strict-btn" onclick="setStrictness('strict')"
+          style="flex:1;padding:10px;border-radius:8px;border:2px solid var(--accent);background:var(--accent)18;color:var(--accent);font-family:Syne,sans-serif;font-weight:700;font-size:0.85rem;cursor:pointer;">
+          🎯 Strikt
+        </button>
+        <button type="button" id="loose-btn" onclick="setStrictness('loose')"
+          style="flex:1;padding:10px;border-radius:8px;border:2px solid #ffffff18;background:#ffffff08;color:var(--muted);font-family:Syne,sans-serif;font-weight:700;font-size:0.85rem;cursor:pointer;">
+          〜 Soepel
+        </button>
+      </div>
+      <p id="strictness-desc" style="color:var(--muted);font-size:0.78rem;margin-top:8px;">Spaties en hoofdletters tellen mee. <code style="background:#ffffff10;padding:1px 5px;border-radius:3px;">x + 3</code> ≠ <code style="background:#ffffff10;padding:1px 5px;border-radius:3px;">x+3</code></p>`;
+  } else {
+    area.innerHTML = `<p style="color:var(--muted);font-size:0.82rem;margin-top:10px;">Open vragen worden handmatig beoordeeld.</p>`;
+  }
+};
+onTypeChange();
+
+let currentStrictness = 'strict';
+
+window.setStrictness = function(level) {
+  currentStrictness = level;
+  const strictBtn = document.getElementById('strict-btn');
+  const looseBtn = document.getElementById('loose-btn');
+  const desc = document.getElementById('strictness-desc');
+  if (level === 'strict') {
+    strictBtn.style.cssText = 'flex:1;padding:10px;border-radius:8px;border:2px solid var(--accent);background:var(--accent)18;color:var(--accent);font-family:Syne,sans-serif;font-weight:700;font-size:0.85rem;cursor:pointer;';
+    looseBtn.style.cssText = 'flex:1;padding:10px;border-radius:8px;border:2px solid #ffffff18;background:#ffffff08;color:var(--muted);font-family:Syne,sans-serif;font-weight:700;font-size:0.85rem;cursor:pointer;';
+    desc.innerHTML = 'Spaties en hoofdletters tellen mee. <code style="background:#ffffff10;padding:1px 5px;border-radius:3px;">x + 3</code> ≠ <code style="background:#ffffff10;padding:1px 5px;border-radius:3px;">x+3</code>';
+  } else {
+    looseBtn.style.cssText = 'flex:1;padding:10px;border-radius:8px;border:2px solid var(--accent);background:var(--accent)18;color:var(--accent);font-family:Syne,sans-serif;font-weight:700;font-size:0.85rem;cursor:pointer;';
+    strictBtn.style.cssText = 'flex:1;padding:10px;border-radius:8px;border:2px solid #ffffff18;background:#ffffff08;color:var(--muted);font-family:Syne,sans-serif;font-weight:700;font-size:0.85rem;cursor:pointer;';
+    desc.innerHTML = 'Spaties en leestekens worden genegeerd. <code style="background:#ffffff10;padding:1px 5px;border-radius:3px;">x + 3</code> = <code style="background:#ffffff10;padding:1px 5px;border-radius:3px;">x+3</code>';
+  }
+};
+
+window.addShortAnswer = function() {
+  const list = document.getElementById('short-answers-list');
+  const row = document.createElement('div');
+  row.className = 'short-answer-row';
+  row.style.cssText = 'display:flex;gap:8px;margin-bottom:8px;';
+  row.innerHTML = `<input type="text" class="short-ans-input" placeholder="Correct antwoord..." style="margin-bottom:0;"><button type="button" class="btn danger small" style="width:auto;flex-shrink:0;" onclick="removeShortAnswer(this)">×</button>`;
+  list.appendChild(row);
+  row.querySelector('input').focus();
+};
+
+window.removeShortAnswer = function(btn) {
+  const list = document.getElementById('short-answers-list');
+  if (list.children.length <= 1) return;
+  btn.parentElement.remove();
+};
+
+window.addQuestion = async function() {
+  if (!activeQuizId) return alert('Geen quiz geselecteerd.');
+  const type = document.getElementById('q-type').value;
+  const text = document.getElementById('q-text').value.trim();
+  const time = parseInt(document.getElementById('q-time').value) || 30;
+  if (!text) return alert('Geef een vraagtekst in.');
+  let options = [], answer = '';
+  if (type === 'multiple') {
+    options = ['A','B','C','D'].map(l => document.getElementById(`opt-${l}`).value.trim());
+    if (options.some(o => !o)) return alert('Vul alle 4 opties in.');
+    const sel = document.getElementById('q-answer').value;
+    if (!sel) return alert('Kies het correcte antwoord.');
+    answer = options[['A','B','C','D'].indexOf(sel)];
+  } else if (type === 'truefalse') {
+    answer = document.getElementById('q-answer').value;
+  } else if (type === 'short') {
+    const inputs = document.querySelectorAll('.short-ans-input');
+    const answers = Array.from(inputs).map(i => i.value.trim()).filter(v => v);
+    if (answers.length === 0) return alert('Geef minstens één correct antwoord in.');
+    answer = answers.join(';');
+  }
+  const order = activeQuestions.length + 1;
+  const id = `q_${Date.now()}`;
+  const strictness = type === 'short' ? currentStrictness : null;
+  const q = { id, type, question:text, options, answer, timeLimit:time, order, ...(strictness && { strictness }) };
+  await setDoc(doc(db,'quizzes',activeQuizId,'questions',id), q);
+  await setDoc(doc(db,'quizzes',activeQuizId), { questionCount:order }, { merge:true });
+  activeQuestions.push(q);
+  const qi = myQuizzes.findIndex(q => q.id === activeQuizId);
+  if (qi >= 0) myQuizzes[qi].questionCount = order;
+  renderQuestions();
+  document.getElementById('q-text').value = '';
+  currentStrictness = 'strict';
+  onTypeChange();
+};
+
+function renderQuestions() {
+  document.getElementById('q-count').textContent = `(${activeQuestions.length})`;
+  document.getElementById('q-list').innerHTML = activeQuestions.map((q,i) => `
+    <div class="q-item">
+      <span class="q-num">${i+1}</span>
+      <div class="q-info">
+        <div class="q-text">${q.question}</div>
+        <div class="q-meta"><span class="type-badge ${q.type}">${typeLabel(q.type)}</span>${q.type==='short'?' · <span style="color:var(--accent);font-size:0.72rem;">'+(q.strictness==='loose'?'〜 Soepel':'🎯 Strikt')+'</span>':''} · ${q.timeLimit}s${q.type!=='open'?' · Antwoord: '+q.answer:''}</div>
+      </div>
+      <button class="btn ghost small" onclick="openEditModal('${q.id}')">✏️</button>
+      <button class="btn danger small" onclick="deleteQuestion('${q.id}')">✕</button>
+    </div>`).join('');
+}
+
+function typeLabel(t) { return t==='multiple'?'Meerkeuze':t==='truefalse'?'Juist/Fout':t==='short'?'Kort antwoord':'Open'; }
+
+// ── VRAAG VERWIJDEREN ─────────────────────────────────────────────────────────
+window.deleteQuestion = async function(id) {
+  if (!confirm('Vraag verwijderen?')) return;
+  await deleteDoc(doc(db,'quizzes',activeQuizId,'questions',id));
+  activeQuestions = activeQuestions.filter(q => q.id !== id);
+  activeQuestions.forEach((q,i) => q.order = i+1);
+  const qi = myQuizzes.findIndex(q => q.id === activeQuizId);
+  if (qi >= 0) { myQuizzes[qi].questionCount = activeQuestions.length; await setDoc(doc(db,'quizzes',activeQuizId),{questionCount:activeQuestions.length},{merge:true}); }
+  renderQuestions();
+};
+
+// ── VRAAG BEWERKEN ────────────────────────────────────────────────────────────
+window.openEditModal = function(id) {
+  const q = activeQuestions.find(q => q.id === id);
+  if (!q) return;
+  document.getElementById('edit-q-id').value = id;
+  document.getElementById('edit-q-text').value = q.question;
+  document.getElementById('edit-q-time').value = q.timeLimit;
+  document.getElementById('edit-q-type').value = q.type;
+  onEditTypeChange(q);
+  document.getElementById('edit-modal').classList.remove('hidden');
+};
+
+window.closeEditModal = function() {
+  document.getElementById('edit-modal').classList.add('hidden');
+};
+
+// Close modal on overlay click
+document.getElementById('edit-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeEditModal();
+});
+
+window.onEditTypeChange = function(existing) {
+  const type = document.getElementById('edit-q-type').value;
+  const area = document.getElementById('edit-options-area');
+  if (type === 'multiple') {
+    const opts = existing?.options || ['','','',''];
+    const correctIdx = existing ? opts.indexOf(existing.answer) : -1;
+    area.innerHTML = `<label>Antwoordopties</label><div class="options-grid">${['A','B','C','D'].map((l,i)=>`<div class="opt-input-row"><span class="opt-label-badge">${l}</span><input type="text" id="edit-opt-${l}" value="${opts[i]||''}" placeholder="Optie ${l}"></div>`).join('')}</div><label>Correct antwoord</label><select id="edit-q-answer">${['A','B','C','D'].map((l,i)=>`<option value="${l}" ${correctIdx===i?'selected':''}>${l}</option>`).join('')}</select>`;
+  } else if (type === 'truefalse') {
+    const cur = existing?.answer || 'Juist';
+    area.innerHTML = `<label>Correct antwoord</label><select id="edit-q-answer"><option value="Juist" ${cur==='Juist'?'selected':''}>Juist</option><option value="Fout" ${cur==='Fout'?'selected':''}>Fout</option></select>`;
+  } else if (type === 'short') {
+    const answers = existing?.answer ? existing.answer.split(';') : [''];
+    const strictness = existing?.strictness || 'strict';
+    area.innerHTML = `
+      <label>Correcte antwoorden</label>
+      <div id="edit-short-answers-list">
+        ${answers.map(a => `<div class="short-answer-row" style="display:flex;gap:8px;margin-bottom:8px;"><input type="text" class="edit-short-ans-input" value="${a.trim()}" placeholder="Correct antwoord..." style="margin-bottom:0;"><button type="button" class="btn danger small" style="width:auto;flex-shrink:0;" onclick="removeEditShortAnswer(this)">×</button></div>`).join('')}
+      </div>
+      <button type="button" class="btn ghost small" style="margin-top:4px;" onclick="addEditShortAnswer()">+ Voeg antwoord toe</button>
+      <label style="margin-top:16px;">Verbeteringswijze</label>
+      <div style="display:flex;gap:8px;margin-top:6px;">
+        <button type="button" id="edit-strict-btn" onclick="setEditStrictness('strict')"
+          style="flex:1;padding:10px;border-radius:8px;border:2px solid ${strictness==='strict'?'var(--accent)':'#ffffff18'};background:${strictness==='strict'?'var(--accent)18':'#ffffff08'};color:${strictness==='strict'?'var(--accent)':'var(--muted)'};font-family:Syne,sans-serif;font-weight:700;font-size:0.85rem;cursor:pointer;">
+          🎯 Strikt
+        </button>
+        <button type="button" id="edit-loose-btn" onclick="setEditStrictness('loose')"
+          style="flex:1;padding:10px;border-radius:8px;border:2px solid ${strictness==='loose'?'var(--accent)':'#ffffff18'};background:${strictness==='loose'?'var(--accent)18':'#ffffff08'};color:${strictness==='loose'?'var(--accent)':'var(--muted)'};font-family:Syne,sans-serif;font-weight:700;font-size:0.85rem;cursor:pointer;">
+          〜 Soepel
+        </button>
+      </div>`;
+    // Store current strictness for the edit modal
+    document.getElementById('edit-modal').dataset.strictness = strictness;
+  } else {
+    area.innerHTML = `<p style="color:var(--muted);font-size:0.82rem;margin-top:10px;">Open vragen worden handmatig beoordeeld.</p>`;
+  }
+};
+
+window.setEditStrictness = function(level) {
+  document.getElementById('edit-modal').dataset.strictness = level;
+  const strictBtn = document.getElementById('edit-strict-btn');
+  const looseBtn = document.getElementById('edit-loose-btn');
+  if (level === 'strict') {
+    strictBtn.style.cssText = 'flex:1;padding:10px;border-radius:8px;border:2px solid var(--accent);background:var(--accent)18;color:var(--accent);font-family:Syne,sans-serif;font-weight:700;font-size:0.85rem;cursor:pointer;';
+    looseBtn.style.cssText = 'flex:1;padding:10px;border-radius:8px;border:2px solid #ffffff18;background:#ffffff08;color:var(--muted);font-family:Syne,sans-serif;font-weight:700;font-size:0.85rem;cursor:pointer;';
+  } else {
+    looseBtn.style.cssText = 'flex:1;padding:10px;border-radius:8px;border:2px solid var(--accent);background:var(--accent)18;color:var(--accent);font-family:Syne,sans-serif;font-weight:700;font-size:0.85rem;cursor:pointer;';
+    strictBtn.style.cssText = 'flex:1;padding:10px;border-radius:8px;border:2px solid #ffffff18;background:#ffffff08;color:var(--muted);font-family:Syne,sans-serif;font-weight:700;font-size:0.85rem;cursor:pointer;';
+  }
+};
+
+window.addEditShortAnswer = function() {
+  const list = document.getElementById('edit-short-answers-list');
+  const row = document.createElement('div');
+  row.className = 'short-answer-row';
+  row.style.cssText = 'display:flex;gap:8px;margin-bottom:8px;';
+  row.innerHTML = `<input type="text" class="edit-short-ans-input" placeholder="Correct antwoord..." style="margin-bottom:0;"><button type="button" class="btn danger small" style="width:auto;flex-shrink:0;" onclick="removeEditShortAnswer(this)">×</button>`;
+  list.appendChild(row);
+  row.querySelector('input').focus();
+};
+
+window.removeEditShortAnswer = function(btn) {
+  const list = document.getElementById('edit-short-answers-list');
+  if (list.children.length <= 1) return;
+  btn.parentElement.remove();
+};
+
+window.saveEditQuestion = async function() {
+  const id = document.getElementById('edit-q-id').value;
+  const type = document.getElementById('edit-q-type').value;
+  const text = document.getElementById('edit-q-text').value.trim();
+  const time = parseInt(document.getElementById('edit-q-time').value) || 30;
+  if (!text) return alert('Geef een vraagtekst in.');
+  let options = [], answer = '', strictness = null;
+  if (type === 'multiple') {
+    options = ['A','B','C','D'].map(l => document.getElementById(`edit-opt-${l}`).value.trim());
+    if (options.some(o => !o)) return alert('Vul alle 4 opties in.');
+    const sel = document.getElementById('edit-q-answer').value;
+    answer = options[['A','B','C','D'].indexOf(sel)];
+  } else if (type === 'truefalse') {
+    answer = document.getElementById('edit-q-answer').value;
+  } else if (type === 'short') {
+    const inputs = document.querySelectorAll('.edit-short-ans-input');
+    const answers = Array.from(inputs).map(i => i.value.trim()).filter(v => v);
+    if (answers.length === 0) return alert('Geef minstens één correct antwoord in.');
+    answer = answers.join(';');
+    strictness = document.getElementById('edit-modal').dataset.strictness || 'strict';
+  }
+  const qi = activeQuestions.findIndex(q => q.id === id);
+  const existing = activeQuestions[qi];
+  const updated = { ...existing, type, question:text, options, answer, timeLimit:time, ...(strictness ? { strictness } : { strictness: null }) };
+  await setDoc(doc(db,'quizzes',activeQuizId,'questions',id), updated);
+  activeQuestions[qi] = updated;
+  renderQuestions();
+  closeEditModal();
+};
+
+// ── QUIZ STARTEN ──────────────────────────────────────────────────────────────
+window.startQuizFromEditor = function() { launchQuiz(activeQuizId, activeQuizName); };
+
+window.launchQuiz = async function(quizId, quizName) {
+  activeQuizId = quizId; activeQuizName = quizName; activeQuestions = [];
+  const snap = await getDocs(query(collection(db,'quizzes',quizId,'questions'), orderBy('order')));
+  snap.forEach(d => activeQuestions.push({ id:d.id, ...d.data() }));
+  if (activeQuestions.length === 0) return alert('Voeg eerst vragen toe.');
+  const code = String(Math.floor(1000 + Math.random() * 9000));
+  activeRoomCode = code; currentQIndex = -1;
+  await setDoc(doc(db,'rooms',code,'quiz','state'), { status:'waiting', quizId, quizName, ownerUid:currentUser.uid, ownerEmail:currentUser.email, createdAt:serverTimestamp() });
+  for (const q of activeQuestions) await setDoc(doc(db,'rooms',code,'questions',q.id), q);
+  const baseUrl = window.location.origin + window.location.pathname.replace('teacher.html','');
+  document.getElementById('live-quiz-name').textContent = quizName;
+  document.getElementById('results-quiz-name').textContent = quizName;
+  document.getElementById('live-room-code').textContent = code;
+  document.getElementById('live-room-url').textContent = `${baseUrl}index.html`;
+  document.getElementById('results-room-code').textContent = code;
+  document.getElementById('nav-live').style.display = 'flex';
+  document.getElementById('nav-results').style.display = 'flex';
+  document.getElementById('live-phase-waiting').style.display = 'block';
+  document.getElementById('live-phase-question').style.display = 'none';
+  document.getElementById('btn-start').disabled = false;
+  document.getElementById('btn-end').disabled = true;
+  document.getElementById('btn-next').disabled = true;
+  watchPlayers();
+  showTab('tab-live', document.getElementById('nav-live'));
+};
+
+// ── LIVE ──────────────────────────────────────────────────────────────────────
+window.startQuizSession = async function() {
+  document.getElementById('live-phase-waiting').style.display = 'none';
+  document.getElementById('live-phase-question').style.display = 'block';
+  document.getElementById('btn-end').disabled = false;
+  currentQIndex = 0;
+  await sendQuestion(0);
+};
+
+async function sendQuestion(index) {
+  const q = activeQuestions[index];
+  currentQIndex = index;
+  document.getElementById('live-question-card').style.display = 'block';
+  document.getElementById('live-top3-card').style.display = 'none';
+  document.getElementById('live-bars-area').style.display = 'none';
+  document.getElementById('live-open-result').style.display = 'none';
+  document.getElementById('live-answer-counter').textContent = '';
+  document.getElementById('btn-next').disabled = true;
+  setPhaseChip('question');
+  document.getElementById('live-q-number').textContent = `Vraag ${index+1}`;
+  document.getElementById('live-q-count-label').textContent = `${index+1} / ${activeQuestions.length}`;
+  document.getElementById('live-question-text').textContent = q.question;
+  const optArea = document.getElementById('live-options-area');
+  optArea.innerHTML = ''; optArea.style.display = 'block';
+  if (q.type === 'multiple') {
+    optArea.innerHTML = q.options.map((opt,i) => `<div class="live-option"><span class="live-opt-label">${['A','B','C','D'][i]}</span><span class="live-opt-text">${opt}</span></div>`).join('');
+  } else if (q.type === 'truefalse') {
+    optArea.innerHTML = `<div class="live-option"><span class="live-opt-label">✓</span><span class="live-opt-text">Juist</span></div><div class="live-option"><span class="live-opt-label">✗</span><span class="live-opt-text">Fout</span></div>`;
+  } else if (q.type === 'short') {
+    optArea.innerHTML = `<div style="background:#ffffff08;border-radius:10px;padding:16px;color:var(--muted);">Kort antwoord — leerlingen typen hun antwoord</div>`;
+  } else {
+    optArea.innerHTML = `<div style="background:#ffffff08;border-radius:10px;padding:16px;color:var(--muted);">Open vraag — leerlingen typen hun antwoord</div>`;
+  }
+  await setDoc(doc(db,'rooms',activeRoomCode,'quiz','state'), { status:'question', questionId:q.id, questionIndex:index, timeLimit:q.timeLimit, questionStartedAt:Timestamp.now(), currentQIndex:index });
+  watchLiveAnswers(q.id, q);
+  if (autoLeaderboardTimer) clearTimeout(autoLeaderboardTimer);
+  autoLeaderboardTimer = setTimeout(() => showAnswerResults(q), q.timeLimit * 1000 + 500);
+}
+
+window.nextQuestion = async function() {
+  if (currentQIndex < activeQuestions.length - 1) await sendQuestion(currentQIndex + 1);
+  else await endQuiz();
+};
+
+window.endQuiz = async function() {
+  if (autoLeaderboardTimer) clearTimeout(autoLeaderboardTimer);
+  if (liveAnswerUnsub) liveAnswerUnsub();
+  await setDoc(doc(db,'rooms',activeRoomCode,'quiz','state'), { status:'finished' });
+  document.getElementById('live-phase-question').style.display = 'none';
+  const waitDiv = document.getElementById('live-phase-waiting');
+  const pSnap = await getDocs(collection(db,'rooms',activeRoomCode,'players'));
+  const players = []; pSnap.forEach(d => players.push({ name:d.data().displayName, score:d.data().score }));
+  players.sort((a,b) => b.score - a.score);
+  const medals = ['🥇','🥈','🥉'];
+  waitDiv.innerHTML = `
+    <h1 style="font-family:Syne,sans-serif;font-size:1.7rem;font-weight:800;margin-bottom:6px;">Quiz afgelopen!</h1>
+    <p style="color:var(--muted);font-size:0.9rem;margin-bottom:24px;">Quiz: <strong style="color:var(--accent)">${activeQuizName}</strong></p>
+    <div class="card">
+      <h2>🏆 Top 3</h2>
+      ${players.slice(0,3).map((p,i) => `<div class="top3-row"><span class="top3-medal">${medals[i]}</span><span class="top3-name">${p.name}</span><span class="top3-score">${p.score} pt</span></div>`).join('')}
+    </div>
+    <button class="btn ghost" style="width:100%;margin-top:8px;" onclick="leaveQuiz(true)">✕ Verlaat quiz</button>`;
+  waitDiv.style.display = 'block';
+  refreshResults();
+};
+
+window.leaveQuiz = async function(skipConfirm) {
+  if (!skipConfirm && !confirm('Quiz verlaten? De quiz wordt gestopt voor alle leerlingen.')) return;
+  if (autoLeaderboardTimer) clearTimeout(autoLeaderboardTimer);
+  if (liveAnswerUnsub) liveAnswerUnsub();
+  if (playersUnsub) playersUnsub();
+  await setDoc(doc(db,'rooms',activeRoomCode,'quiz','state'), { status:'abandoned' });
+  activeRoomCode = null; activeQuizId = null; activeQuestions = []; currentQIndex = -1; playerCount = 0;
+  document.getElementById('live-phase-question').style.display = 'none';
+  document.getElementById('live-phase-waiting').style.display = 'block';
+  document.getElementById('nav-live').style.display = 'none';
+  document.getElementById('nav-results').style.display = 'none';
+  showTab('tab-quizzes', document.querySelector('.nav-btn'));
+};
+
+function watchLiveAnswers(qId, q) {
+  if (liveAnswerUnsub) liveAnswerUnsub();
+  allAnswersForCurrentQ = [];
+  let triggered = false;
+  liveAnswerUnsub = onSnapshot(collection(db,'rooms',activeRoomCode,'answers'), snap => {
+    const answers = [];
+    snap.forEach(d => { const data=d.data(); if(data.questionId===qId) answers.push(data); });
+    allAnswersForCurrentQ = answers;
+    const count = answers.length;
+    document.getElementById('live-answer-counter').textContent = count > 0 ? `${count} / ${playerCount} antwoorden ontvangen` : '';
+    if (!triggered && playerCount > 0 && count >= playerCount) {
+      triggered = true;
+      if (autoLeaderboardTimer) clearTimeout(autoLeaderboardTimer);
+      setTimeout(() => showAnswerResults(q), 300);
+    }
+  });
+}
+
+async function showAnswerResults(q) {
+  if (liveAnswerUnsub) { liveAnswerUnsub(); liveAnswerUnsub = null; }
+  await setDoc(doc(db,'rooms',activeRoomCode,'quiz','state'), { status:'leaderboard' });
+  const answers = allAnswersForCurrentQ;
+  const total = answers.length;
+  document.getElementById('live-options-area').style.display = 'none';
+  document.getElementById('live-bars-area').style.display = 'block';
+  document.getElementById('live-open-result').style.display = 'none';
+  document.getElementById('live-answer-counter').textContent = `${total} antwoorden ontvangen`;
+  setPhaseChip('results');
+  document.getElementById('btn-next').disabled = false;
+  const barsArea = document.getElementById('live-bars-area');
+  if (q.type === 'multiple') {
+    const counts = {}; q.options.forEach(o => counts[o]=0);
+    answers.forEach(a => { if(counts[a.answer]!==undefined) counts[a.answer]++; });
+    barsArea.innerHTML = '<div class="answer-bar-wrap">' +
+      q.options.map((opt,i) => {
+        const cnt = counts[opt]||0;
+        const pct = Math.round((cnt/Math.max(total,1))*100);
+        const isCorrect = opt===q.answer;
+        return `<div class="answer-bar-row"><span class="answer-bar-label" style="${isCorrect?'color:var(--green)':''}">${['A','B','C','D'][i]}${isCorrect?' ✓':''}</span><div class="answer-bar-track"><div class="answer-bar-fill ${isCorrect?'correct':''}" style="width:${pct}%">${cnt>0?opt.slice(0,24):''}</div></div><span class="answer-bar-count">${cnt}</span></div>`;
+      }).join('') + '</div>' +
+      `<button class="btn blue" style="margin-top:16px;width:100%;" onclick="showTop3Panel()">🏆 Toon rangschikking</button>`;
+  } else if (q.type === 'truefalse') {
+    const juist = answers.filter(a=>a.answer==='Juist').length;
+    const fout = answers.filter(a=>a.answer==='Fout').length;
+    const isJuistCorrect = q.answer==='Juist';
+    const pctJ = Math.round((juist/Math.max(total,1))*100);
+    const pctF = Math.round((fout/Math.max(total,1))*100);
+    barsArea.innerHTML = `<div class="answer-bar-wrap">
+      <div class="answer-bar-row"><span class="answer-bar-label" style="${isJuistCorrect?'color:var(--green)':''}">✓${isJuistCorrect?' ✓':''}</span><div class="answer-bar-track"><div class="answer-bar-fill ${isJuistCorrect?'correct':''}" style="width:${pctJ}%">Juist</div></div><span class="answer-bar-count">${juist}</span></div>
+      <div class="answer-bar-row"><span class="answer-bar-label" style="${!isJuistCorrect?'color:var(--green)':''}">✗${!isJuistCorrect?' ✓':''}</span><div class="answer-bar-track"><div class="answer-bar-fill ${!isJuistCorrect?'correct':''}" style="width:${pctF}%">Fout</div></div><span class="answer-bar-count">${fout}</span></div>
+    </div><button class="btn blue" style="margin-top:16px;width:100%;" onclick="showTop3Panel()">🏆 Toon rangschikking</button>`;
+  } else if (q.type === 'short') {
+    document.getElementById('live-bars-area').style.display = 'none';
+    document.getElementById('live-open-result').style.display = 'block';
+    const correct = answers.filter(a=>a.correct).length;
+    const acceptedAnswers = q.answer.split(';').map(a=>a.trim()).join(', ');
+    document.getElementById('live-open-result').innerHTML = `
+      <div style="background:var(--green)18;border:2px solid var(--green)44;border-radius:10px;padding:16px;margin-bottom:12px;">
+        <div style="color:var(--muted);font-size:0.78rem;margin-bottom:4px;">Correcte antwoorden</div>
+        <div style="font-family:Syne,sans-serif;font-weight:700;font-size:1.1rem;color:var(--green);">${acceptedAnswers}</div>
+      </div>
+      <div style="color:var(--muted);font-size:0.88rem;">${correct} van ${total} leerlingen hadden het juist.</div>
+      <button class="btn blue" style="margin-top:14px;width:100%;" onclick="showTop3Panel()">🏆 Toon rangschikking</button>`;
+  } else {
+    document.getElementById('live-bars-area').style.display = 'none';
+    document.getElementById('live-open-result').style.display = 'block';
+    document.getElementById('live-open-result').innerHTML = `
+      <div style="background:var(--accent)18;border:2px solid var(--accent)44;border-radius:10px;padding:16px;margin-bottom:12px;">
+        <div style="color:var(--muted);font-size:0.78rem;margin-bottom:4px;">Open vraag</div>
+        <div style="color:var(--muted);font-size:0.88rem;">${total} antwoorden ontvangen. Zie resultaten voor details.</div>
+      </div>
+      <button class="btn blue" style="margin-top:14px;width:100%;" onclick="showTop3Panel()">🏆 Toon rangschikking</button>`;
+  }
+}
+
+window.showTop3Panel = async function() {
+  document.getElementById('live-question-card').style.display = 'none';
+  document.getElementById('live-top3-card').style.display = 'block';
+  setPhaseChip('top3');
+  const pSnap = await getDocs(collection(db,'rooms',activeRoomCode,'players'));
+  const players = []; pSnap.forEach(d => players.push({ name:d.data().displayName, score:d.data().score }));
+  players.sort((a,b) => b.score-a.score);
+  const medals = ['🥇','🥈','🥉'];
+  document.getElementById('live-top3-list').innerHTML = players.slice(0,3).map((p,i) => `
+    <div class="top3-row"><span class="top3-medal">${medals[i]}</span><span class="top3-name">${p.name}</span><span class="top3-score">${p.score} pt</span></div>`).join('');
+};
+
+function setPhaseChip(phase) {
+  const chip = document.getElementById('live-phase-chip');
+  if (!chip) return;
+  if (phase==='question') { chip.textContent='⏳ Leerlingen antwoorden...'; chip.style.cssText='background:var(--accent)18;color:var(--accent);border-color:var(--accent)44'; }
+  else if (phase==='results') { chip.textContent='📊 Resultaten'; chip.style.cssText='background:var(--blue)18;color:var(--blue);border-color:var(--blue)44'; }
+  else if (phase==='top3') { chip.textContent='🏆 Rangschikking'; chip.style.cssText='background:var(--green)18;color:var(--green);border-color:var(--green)44'; }
+}
+
+function watchPlayers() {
+  if (playersUnsub) playersUnsub();
+  playersUnsub = onSnapshot(collection(db,'rooms',activeRoomCode,'players'), snap => {
+    playerCount = snap.size;
+    document.getElementById('ctrl-players').textContent = snap.size;
+    const listEl = document.getElementById('player-list');
+    if (!listEl) return;
+    if (snap.size === 0) {
+      listEl.innerHTML = '<span style="color:var(--muted);font-size:0.85rem;">Nog niemand ingelogd.</span>';
+    } else {
+      const names = [];
+      snap.forEach(d => names.push(d.data().displayName || d.id));
+      names.sort();
+      listEl.innerHTML = names.map(n => `<span style="background:var(--accent)18;border:1px solid var(--accent)33;color:var(--text);font-size:0.85rem;padding:4px 10px;border-radius:99px;">${n}</span>`).join('');
+    }
+  });
+}
+
+window.copyRoomUrl = function() {
+  const url = document.getElementById('live-room-url').textContent;
+  navigator.clipboard.writeText(url).then(() => alert(`Link gekopieerd!\nLeerlingen geven code ${activeRoomCode} in.`));
+};
+
+// ── RESULTATEN ────────────────────────────────────────────────────────────────
+async function refreshResults() {
+  if (!activeRoomCode) return;
+  const pSnap = await getDocs(collection(db,'rooms',activeRoomCode,'players'));
+  const plist = [];
+  pSnap.forEach(d => plist.push({ uid:d.id, ...d.data() }));
+  plist.sort((a,b) => b.score-a.score);
+  document.getElementById('results-lb').innerHTML = plist.map((p,i) => `
+    <tr>
+      <td>${i===0?'🥇':i===1?'🥈':i===2?'🥉':i+1}</td>
+      <td>${p.displayName||'–'}</td>
+      <td style="color:var(--muted);font-size:0.82rem;">${p.email||'–'}</td>
+      <td>${p.score} pt</td>
+    </tr>`).join('');
+  renderResultSelect();
+}
+
+function renderResultSelect() {
+  const sel = document.getElementById('result-q-select');
+  sel.innerHTML = activeQuestions.map((q,i) => `<option value="${q.id}">Vraag ${i+1}: ${q.question.slice(0,45)}...</option>`).join('');
+  if (activeQuestions.length > 0) loadAnswersForQuestion(activeQuestions[0].id);
+}
+
+window.loadAnswersForQuestion = async function(qId) {
+  if (!activeRoomCode) return;
+  const aSnap = await getDocs(collection(db,'rooms',activeRoomCode,'answers'));
+  const answers = []; aSnap.forEach(d => { const data=d.data(); if(data.questionId===qId) answers.push(data); });
+  answers.sort((a,b) => (a.elapsed||99)-(b.elapsed||99));
+  document.getElementById('result-answers').innerHTML = answers.length===0
+    ? '<p style="color:var(--muted)">Geen antwoorden.</p>'
+    : answers.map(a => `
+        <div class="answer-row">
+          <span class="${a.correct?'answer-correct':'answer-wrong'}">${a.correct?'✓':'✗'}</span>
+          <span style="flex:1"><strong>${a.displayName||a.uid}</strong>: ${a.answer}</span>
+          <span style="color:var(--muted);font-size:0.78rem">${a.elapsed}s · +${a.points}pt</span>
+        </div>`).join('');
+};
+
+// ── LEERLINGEN (CSV) ──────────────────────────────────────────────────────────
+window.handleDrop = function(e) {
+  e.preventDefault();
+  document.getElementById('upload-zone').classList.remove('drag');
+  const file = e.dataTransfer.files[0];
+  if (file) handleCsvFile(file);
+};
+
+window.handleCsvFile = function(file) {
+  if (!file || !file.name.endsWith('.csv')) return alert('Selecteer een .csv bestand.');
+  const reader = new FileReader();
+  reader.onload = e => parseCsv(e.target.result);
+  reader.readAsText(file);
+};
+
+function parseCsv(text) {
+  const lines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l);
+  const rows = [];
+  for (let i = 0; i < lines.length; i++) {
+    const parts = lines[i].split(',').map(p => p.trim().replace(/^"|"$/g, ''));
+    if (parts.length < 2) continue;
+    const email = parts[0].toLowerCase();
+    const fullName = parts.slice(1).join(' ').trim();
+    // Skip header row
+    if (i === 0 && (email === 'email' || !email.includes('@'))) continue;
+    if (!email.includes('@') || !fullName) continue;
+    rows.push({ email, fullName });
+  }
+  if (rows.length === 0) return alert('Geen geldige rijen gevonden. Controleer het formaat: email,fullName');
+  pendingStudents = rows;
+  document.getElementById('csv-preview-label').textContent = `${rows.length} leerlingen gevonden:`;
+  document.getElementById('csv-preview-rows').innerHTML = rows.slice(0, 10).map(r => `
+    <div class="student-row">
+      <span class="student-name">${r.fullName}</span>
+      <span class="student-email">${r.email}</span>
+    </div>`).join('') + (rows.length > 10 ? `<div style="color:var(--muted);font-size:0.82rem;padding:8px 0;">...en ${rows.length-10} meer</div>` : '');
+  document.getElementById('csv-preview').style.display = 'block';
+  document.getElementById('csv-feedback').style.display = 'none';
+}
+
+window.cancelCsv = function() {
+  pendingStudents = [];
+  document.getElementById('csv-preview').style.display = 'none';
+  document.getElementById('csv-file').value = '';
+};
+
+window.uploadStudents = async function() {
+  if (pendingStudents.length === 0) return;
+  const feedbackEl = document.getElementById('csv-feedback');
+  feedbackEl.innerHTML = '<span style="color:var(--muted)">Bezig met uploaden...</span>';
+  feedbackEl.style.display = 'block';
+
+  // We store by email as a temporary key — we'll update to UID when the student first logs in
+  // For whitelist purposes, we store email → fullName in /studentEmails/{email}
+  // The actual /students/{uid} record is created on first login
+  try {
+    const batch = writeBatch(db);
+    for (const s of pendingStudents) {
+      batch.set(doc(db, 'studentEmails', s.email), { fullName: s.fullName, email: s.email, importedAt: serverTimestamp() });
+    }
+    await batch.commit();
+    feedbackEl.innerHTML = `<span style="color:var(--green)">✓ ${pendingStudents.length} leerlingen succesvol geïmporteerd.</span>`;
+    pendingStudents = [];
+    document.getElementById('csv-preview').style.display = 'none';
+    document.getElementById('csv-file').value = '';
+    await loadStudents();
+  } catch(e) {
+    feedbackEl.innerHTML = `<span style="color:var(--accent2)">Fout bij uploaden: ${e.message}</span>`;
+  }
+};
+
+window.loadStudents = async function() {
+  const snap = await getDocs(collection(db, 'studentEmails'));
+  const students = [];
+  snap.forEach(d => students.push(d.data()));
+  students.sort((a,b) => (a.fullName||'').localeCompare(b.fullName||''));
+  document.getElementById('student-count').textContent = `(${students.length})`;
+  document.getElementById('student-list').innerHTML = students.length === 0
+    ? '<div class="empty-state"><div class="empty-icon">📭</div><p>Nog geen leerlingen.</p></div>'
+    : students.map(s => `
+        <div class="student-row">
+          <span class="student-name">${s.fullName}</span>
+          <span class="student-email">${s.email}</span>
+          <button class="btn danger small" onclick="deleteStudent('${s.email}')">✕</button>
+        </div>`).join('');
+};
+
+window.deleteStudent = async function(email) {
+  if (!confirm(`${email} verwijderen?`)) return;
+  await deleteDoc(doc(db, 'studentEmails', email));
+  await loadStudents();
+};
+
+window.clearAllStudents = async function() {
+  if (!confirm('Alle leerlingen verwijderen? Ze kunnen dan niet meer inloggen.')) return;
+  const snap = await getDocs(collection(db, 'studentEmails'));
+  const batch = writeBatch(db);
+  snap.forEach(d => batch.delete(d.ref));
+  await batch.commit();
+  await loadStudents();
+};
+
+// ── ROOMS ─────────────────────────────────────────────────────────────────────
+window.loadRooms = async function() {
+  const wrap = document.getElementById('rooms-list');
+  wrap.innerHTML = '<div class="empty-state"><div class="empty-icon">⏳</div><p>Laden...</p></div>';
+  const stateSnap = await getDocs(collectionGroup(db,'quiz'));
+  const rooms = [];
+  for (const stateDoc of stateSnap.docs) {
+    if (stateDoc.id !== 'state') continue;
+    const state = stateDoc.data();
+    const roomCode = stateDoc.ref.parent.parent.id;
+    if (state.ownerUid && state.ownerUid !== currentUser.uid) continue;
+    const playersSnap = await getDocs(collection(db,'rooms',roomCode,'players'));
+    rooms.push({ code:roomCode, quizName:state.quizName||'–', status:state.status||'–', createdAt:state.createdAt||null, playerCount:playersSnap.size });
+  }
+  rooms.sort((a,b) => (b.createdAt?.toMillis?.()||0)-(a.createdAt?.toMillis?.()||0));
+  if (rooms.length === 0) { wrap.innerHTML = '<div class="empty-state"><div class="empty-icon">📭</div><p>Geen rooms.</p></div>'; return; }
+  const statusLabel = { waiting:'⏳ Wachten', question:'▶ Bezig', leaderboard:'🏆 Rangschikking', finished:'✓ Afgelopen', abandoned:'✕ Verlaten' };
+  wrap.innerHTML = rooms.map(r => {
+    const dt = r.createdAt ? new Date(r.createdAt.toMillis()) : null;
+    const dateStr = dt ? dt.toLocaleDateString('nl-BE',{day:'2-digit',month:'2-digit',year:'numeric'}) : '–';
+    const timeStr = dt ? dt.toLocaleTimeString('nl-BE',{hour:'2-digit',minute:'2-digit'}) : '–';
+    return `<div class="room-item">
+      <div class="room-code-badge">${r.code}</div>
+      <div class="room-meta">
+        <div class="room-meta-title">${r.quizName}</div>
+        <div class="room-meta-sub">📅 ${dateStr} · 🕐 ${timeStr} · 👥 ${r.playerCount} spelers · ${statusLabel[r.status]||r.status}</div>
+      </div>
+      <button class="btn danger small" onclick="deleteRoom('${r.code}')">🗑 Verwijderen</button>
+    </div>`;
+  }).join('');
+};
+
+window.deleteRoom = async function(code) {
+  if (!confirm(`Room ${code} verwijderen?`)) return;
+  for (const sub of ['players','answers','questions']) {
+    const subSnap = await getDocs(collection(db,'rooms',code,sub));
+    for (const d of subSnap.docs) await deleteDoc(d.ref);
+  }
+  await deleteDoc(doc(db,'rooms',code,'quiz','state'));
+  await loadRooms();
+};
+</script>
+</body>
+</html>
