@@ -377,7 +377,7 @@ function checkAnswer(v, q) {
   if (q.type === 'short') {
     const accepted = q.answer.split(';').map(a => a.trim());
     if (q.strictness === 'loose') {
-      const normalize = s => s.toLowerCase().replace(/[\s\-.,;:!?()]/g, '');
+      const normalize = s => s.toLowerCase().replace(/\s/g, '');
       return accepted.some(a => normalize(a) === normalize(v));
     } else {
       return accepted.some(a => a.toLowerCase() === v.toLowerCase().trim());
